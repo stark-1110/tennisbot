@@ -1,0 +1,45 @@
+name: Meguro Tennis Court Scraper
+
+on:
+  schedule:
+    # 毎日 日本時間の「朝7:00」「昼12:00」「夕方18:00」「夜21:00」の1日4回動かす設定
+    - cron: '0 22,3,9,12 * * *'
+  workflow_dispatch: # 手動実行ボタンをつける
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: 1. 倉庫からコードをダウンロード
+      uses: actions/checkout@v4
+
+    - name: 2. Pythonの準備
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 3. 必要なライブラリのインストール
+      run: |
+        pip install -r requirements.txt
+        playwright install --with-deps chromium
+
+    - name: 4. スクレイピング実行
+      env:
+        MY_EMAIL: ${{ secrets.MY_EMAIL }}
+        MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
+      run: python main.py
+
+    - name: 5. 前回の結果（JSONファイル）が更新されていたらGitHubに保存する
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add previous_result.json || true
+        if ! git diff --cached --exit-code --quiet; then
+          git commit -m "Update previous_result.json"
+          git push
+        else
+          echo "変更がないため保存（コミット）をスキップします"
+        fi
