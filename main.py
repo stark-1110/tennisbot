@@ -98,10 +98,12 @@ async def main():
                 
                 if len(found_availabilities) > 0:
                     try:
+                        email1 = os.environ.get("TO_EMAIL_1")
+                        email2 = os.environ.get("TO_EMAIL_2")
                         # 💡 ここが超重要！GitHubの秘密金庫からパスワードを引っぱり出します
                         MY_EMAIL = os.environ.get("MY_EMAIL")
                         MY_PASSWORD = os.environ.get("MY_PASSWORD")
-                        TO_EMAIL = "soh050820@gmail.com"
+                        TO_EMAIL = [email1, email2]
                         
                         subject = "🎾 テニスコート空き情報のお知らせ"
                         body = "以下のテニスコートに空きが出ました！\n\n" + "\n".join(found_availabilities)
@@ -109,14 +111,14 @@ async def main():
                         msg = MIMEText(body, "plain", "utf-8")
                         msg["Subject"] = subject
                         msg["From"] = MY_EMAIL
-                        msg["To"] = TO_EMAIL
+                        msg["To"] = ",".join(TO_EMAIL)
                         
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
                         server.login(MY_EMAIL, MY_PASSWORD)
-                        server.send_message(msg)
+                        server.send_message(msg, to_addrs=TO_EMAILS)
                         server.quit()
-                        print(f"✉️ {TO_EMAIL} へメールを送信しました！")
+                        print(f"✉️ ({len(TO_EMAIL)名}) へメールを送信しました！")
                         
                     except Exception as mail_err:
                         print(f"❌ メール送信エラー: {mail_err}")
