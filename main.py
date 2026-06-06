@@ -118,7 +118,7 @@ async def main():
                         server.login(MY_EMAIL, MY_PASSWORD)
                         server.send_message(msg, to_addrs=TO_EMAILS)
                         server.quit()
-                        print(f"✉️ ({len(TO_EMAIL)名}) へメールを送信しました！")
+                        print(f"✉️ ({len(TO_EMAILS)名}) へメールを送信しました！")
                         
                     except Exception as mail_err:
                         print(f"❌ メール送信エラー: {mail_err}")
