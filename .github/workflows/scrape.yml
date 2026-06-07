@@ -30,8 +30,6 @@ jobs:
       env:
         MY_EMAIL: ${{ secrets.MY_EMAIL }}
         MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
-        TO_EMAIL_1: ${{ secrets.TO_EMAIL_1 }} 
-        TO_EMAIL_2: ${{ secrets.TO_EMAIL_2 }}
       run: python main.py
 
     - name: 5. 前回の結果（JSONファイル）が更新されていたらGitHubに保存する
