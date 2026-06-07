@@ -101,7 +101,7 @@ async def main():
                         # 💡 ここが超重要！GitHubの秘密金庫からパスワードを引っぱり出します
                         MY_EMAIL = os.environ.get("MY_EMAIL")
                         MY_PASSWORD = os.environ.get("MY_PASSWORD")
-                        TO_EMAILS = ["soh050820@gmail.com","tangostin@gmail.com"]
+                        TO_EMAILS = ["soh050820@gmail.com","tangostin@gmail.com","emichiwawa0416@yahoo.co.jp"]
                         
                         subject = "🎾 テニスコート空き情報のお知らせ"
                         body = "以下のテニスコートに空きが出ました！\n\n" + "\n".join(found_availabilities)
