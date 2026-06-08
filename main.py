@@ -15,7 +15,7 @@ async def main():
         "https://api.line.me/v2/bot/message/push",
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')}"
+            "Authorization": f"Bearer {os.environ.get('LINE_MESSEGE_API')}"
         },
         json={
             "to": os.environ.get("LINE_USER_ID"),
