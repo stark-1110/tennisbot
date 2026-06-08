@@ -10,18 +10,22 @@ from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 
 async def main():
-    # 👈 追加②：始まった瞬間にLINEへ「作動」とだけ送る
-    requests.post(
+    # 👈 ここを少し詳しくして、原因をログに出すようにします
+    print("📢 LINE送信を試みます...")
+    line_response = requests.post(
         "https://api.line.me/v2/bot/message/push",
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {os.environ.get('LINE_MESSEGE_API')}"
+            "Authorization": f"Bearer {os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')}"
         },
         json={
             "to": os.environ.get("LINE_USER_ID"),
-            "messages": [{"type": "text", "text": "テニスボット作動"}]
+            "messages": [{"type": "text", "text": "作動"}]
         }
     )
+    print(f"📡 LINE送信ステータス: {line_response.status_code}")
+    print(f"💬 LINE送信結果詳細: {line_response.text}")
+
 
     async with async_playwright() as p:
         # 💡 本番（GitHub）は画面がないので、headless=True にします
