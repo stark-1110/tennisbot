@@ -4,11 +4,25 @@ import asyncio
 import json
 import os
 import smtplib
+import requests  # 👈 追加①
 from email.mime.text import MIMEText
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 
 async def main():
+    # 👈 追加②：始まった瞬間にLINEへ「作動」とだけ送る
+    requests.post(
+        "https://api.line.me/v2/bot/message/push",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')}"
+        },
+        json={
+            "to": os.environ.get("LINE_USER_ID"),
+            "messages": [{"type": "text", "text": "テニスボット作動"}]
+        }
+    )
+
     async with async_playwright() as p:
         # 💡 本番（GitHub）は画面がないので、headless=True にします
         browser = await p.chromium.launch(headless=True)
@@ -98,7 +112,6 @@ async def main():
                 
                 if len(found_availabilities) > 0:
                     try:
-                        # 💡 ここが超重要！GitHubの秘密金庫からパスワードを引っぱり出します
                         MY_EMAIL = os.environ.get("MY_EMAIL")
                         MY_PASSWORD = os.environ.get("MY_PASSWORD")
                         TO_EMAILS = ["soh050820@gmail.com","tangostin@gmail.com","emichiwawa0416@yahoo.co.jp"]
