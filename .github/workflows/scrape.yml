@@ -1,8 +1,10 @@
 name: Meguro Tennis Court Scraper
 
 on:
-  schedule:
-  - cron: '22 21-23,0-14/2 * * *'
+  #schedule:
+  #- cron: '22 21-23,0-14/2 * * *'
+  repository_dispatch:
+    types: [trigger-scraping]
   workflow_dispatch: # 手動実行ボタンをつける
 
 jobs:
