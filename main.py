@@ -4,44 +4,29 @@ import asyncio
 import json
 import os
 import smtplib
-import requests  # 👈 追加①
 from email.mime.text import MIMEText
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 
 async def main():
-    # 👈 ここを少し詳しくして、原因をログに出すようにします
-    print("📢 LINE送信を試みます...")
-    line_response = requests.post(
-        "https://api.line.me/v2/bot/message/push",
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')}"
-        },
-        json={
-            "to": os.environ.get("LINE_USER_ID"),
-            "messages": [{"type": "text", "text": "作動"}]
-        }
-    )
-    print(f"📡 LINE送信ステータス: {line_response.status_code}")
-    print(f"💬 LINE送信結果詳細: {line_response.text}")
-
-
     async with async_playwright() as p:
         # 💡 本番（GitHub）は画面がないので、headless=True にします
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
 
         try:
+            # 🔗 メールに記載するためにURLを変数化しておきます
+            TOP_URL = "https://resv.city.meguro.tokyo.jp/Web/Home/WgR_ModeSelect"
+
             print("1. トップページを開きます...")
-            await page.goto("https://resv.city.meguro.tokyo.jp/Web/Home/WgR_ModeSelect")
+            await page.goto(TOP_URL)
 
             print("2. 「使用目的から探す」をクリックします...")
             await page.locator("text=使用目的から探す").click()
 
             print("3. 「硬式テニス」を選択します...")
             await page.locator("text=硬式テニス").click()
-            await page.get_by_role("button",name="検索").click()
+            await page.get_by_role("button", name="検索").click()
 
             print("4. 施設を4つ選択します...")
             await page.locator("text=駒場体育館").first.click()
@@ -56,7 +41,7 @@ async def main():
             await page.locator("text=その他の条件で絞り込む").first.click()
 
             print("7. 条件（1か月、土日祝）を選択します...")
-            await page.locator("text=1ヶ月").first.click()
+            await page.locator("text=2ヶ月").first.click()
             await page.locator("text=土").first.click()
             await page.locator("text=日").nth(5).click()
             await page.locator("text=祝").first.click()
@@ -98,7 +83,7 @@ async def main():
 
                         msg = f"{facility_name} ＿ {target_date} ＿ 空きあり({mark})"
                         found_availabilities.append(msg)
-                        print(f"🎉 発見: {msg}")
+                        print(f"🎉 発現: {msg}")
 
             # =========================================================
             SAVE_FILE = "previous_result.json"
@@ -118,10 +103,16 @@ async def main():
                     try:
                         MY_EMAIL = os.environ.get("MY_EMAIL")
                         MY_PASSWORD = os.environ.get("MY_PASSWORD")
-                        TO_EMAILS = ["soh050820@gmail.com","tangostin@gmail.com","emichiwawa0416@yahoo.co.jp"]
+                        TO_EMAILS = ["soh050820@gmail.com", "tangostin@gmail.com", "emichiwawa0416@yahoo.co.jp"]
                         
                         subject = "🎾 テニスコート空き情報のお知らせ"
-                        body = "以下のテニスコートに空きが出ました！\n\n" + "\n".join(found_availabilities)
+                        
+                        # 📝 ここで本文の下部にトップページのURLを追加しています
+                        body = (
+                            "以下のテニスコートに空きが出ました！\n\n"
+                            + "\n".join(found_availabilities)
+                            + f"\n\n▼ ご予約はこちらから\n{TOP_URL}"
+                        )
                         
                         msg = MIMEText(body, "plain", "utf-8")
                         msg["Subject"] = subject
