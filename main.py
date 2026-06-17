@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import smtplib
+from datetime import datetime
 from email.mime.text import MIMEText
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
@@ -68,22 +69,65 @@ async def main():
                 else:
                     facility_name = f"予期せぬ庭球場（その{index + 1}）"
                 
-                marks = [cell.get_text(strip=True) for cell in facility_row.find_all(['td', 'th'])]
+                # 🛑 記号（◯や✕など）が入っているセルを取得
+                cells = facility_row.find_all(['td', 'th'])
+                # 1つ目のセルは「駒場庭球場」などの名前なので除外、2つ目以降が記号
+                marks = [cell.get_text(strip=True) for cell in cells[1:]]
                     
                 table = facility_row.find_parent('table')
-                date_row = table.find('tr')
-                dates = [cell.get_text(strip=True) for cell in date_row.find_all(['td', 'th'])]
+                if not table:
+                    continue
 
+                # 📅 日付行と曜日行のテキストを取得
+                # 1行目が日付（6, 7, 13...）、2行目が曜日（土, 日...）の構造に対応
+                header_rows = table.find_all('tr')[:2]
+                if len(header_rows) < 2:
+                    continue
+                
+                # それぞれ最初のヘッダーセル（「2026年6月」など）を除外した右側を取得
+                days = [c.get_text(strip=True) for c in header_rows[0].find_all(['td', 'th'])[1:]]
+                weeks = [c.get_text(strip=True) for c in header_rows[1].find_all(['td', 'th'])[1:]]
+
+                # 🛠️ スクショのように「6月」の枠内に「7月の4日・5日」が混ざる現象への対策
+                # 現在の実行システム日付をベースに、ヘッダーの数字が減ったタイミングで「翌月」と判定します
+                current_year = datetime.now().year
+                current_month = datetime.now().month
+                
+                # 左端に表示されている月（例: "2026年6月"）があれば、それをベースにする
+                left_header_text = header_rows[1].find(['td', 'th']).get_text(strip=True)
+                if "年" in left_header_text and "月" in left_header_text:
+                    try:
+                        # "2026年6月" から数字を抽出
+                        parts = left_header_text.replace("年", "-").replace("月", "").split("-")
+                        current_year = int(parts[0])
+                        current_month = int(parts[1])
+                    except:
+                        pass
+
+                prev_day = 0
                 for i, mark in enumerate(marks):
-                    if mark == "〇" or mark == "△":
+                    if mark in ["〇", "△"]:
                         try:
-                            target_date = dates[i] 
-                        except IndexError:
+                            day_num = int(days[i])
+                            week_str = weeks[i]
+                            
+                            # 👉 日付の数字が前のセルより小さくなったら、月を跨いだと判定（例: 28日 → 4日）
+                            if day_num < prev_day:
+                                current_month += 1
+                                if current_month > 12:
+                                    current_month = 1
+                                    current_year += 1
+                            prev_day = day_num
+                            
+                            # 正しい「〇月〇日(曜日)」を作成
+                            target_date = f"{current_month}月{day_num}日({week_str})"
+                            
+                        except (IndexError, ValueError):
                             target_date = "日付不明"
 
                         msg = f"{facility_name} ＿ {target_date} ＿ 空きあり({mark})"
                         found_availabilities.append(msg)
-                        print(f"🎉 発現: {msg}")
+                        print(f"🎉 発見: {msg}")
 
             # =========================================================
             SAVE_FILE = "previous_result.json"
@@ -107,7 +151,6 @@ async def main():
                         
                         subject = "🎾 テニスコート空き情報のお知らせ"
                         
-                        # 📝 ここで本文の下部にトップページのURLを追加しています
                         body = (
                             "以下のテニスコートに空きが出ました！\n\n"
                             + "\n".join(found_availabilities)
