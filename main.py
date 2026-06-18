@@ -43,7 +43,7 @@ async def main():
 
             print("7. 条件（1か月、土日祝）を選択します...")
             await page.locator("text=1ヶ月").first.click()
-            await page.locator("text=火").first.click()
+            await page.locator("text=土").first.click()
             await page.locator("text=日").nth(5).click()
             await page.locator("text=祝").first.click()
 
