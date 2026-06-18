@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import smtplib
+import re  # 👈 月の数字を抜き出すために追加
 from email.mime.text import MIMEText
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
@@ -41,7 +42,7 @@ async def main():
             await page.locator("text=その他の条件で絞り込む").first.click()
 
             print("7. 条件（1か月、土日祝）を選択します...")
-            await page.locator("text=1ヶ月").first.click()
+            await page.locator("text=2ヶ月").first.click()
             await page.locator("text=土").first.click()
             await page.locator("text=日").nth(5).click()
             await page.locator("text=祝").first.click()
@@ -68,29 +69,50 @@ async def main():
                 else:
                     facility_name = f"予期せぬ庭球場（その{index + 1}）"
                 
-                # 今まで通りのシンプルなマーク取得
                 marks = [cell.get_text(strip=True) for cell in facility_row.find_all(['td', 'th'])]
                     
                 table = facility_row.find_parent('table')
                 
-                # 📅 【ここがポイント】左上のセル（2026年6月）の文字をそのまま抜き出す
-                month_title = "日付不明"
+                # 📅 左上のセル（2026年6月）からベースの「月」を取得
+                base_month = 6  # 万が一取得失敗したときのデフォルト
                 if table:
-                    # テーブルの一番最初のtr（ヘッダー行）にある、最初のthまたはtdを取得
                     first_cell = table.find('tr').find(['th', 'td'])
                     if first_cell:
-                        month_title = first_cell.get_text(strip=True) # 例: "2026年6月"
+                        month_title = first_cell.get_text(strip=True)  # 例: "2026年6月"
+                        # 「〇〇月」の数字部分だけを正規表現で抜き出す
+                        month_match = re.search(r'(\d+)月', month_title)
+                        if month_match:
+                            base_month = int(month_match.group(1))
                 
-                # 今まで通りのシンプルな日付取得
                 date_row = table.find('tr')
                 dates = [cell.get_text(strip=True) for cell in date_row.find_all(['td', 'th'])]
+
+                # 🛠️ ループ内で月跨ぎを判定するための変数
+                current_month = base_month
+                prev_day = 0
 
                 for i, mark in enumerate(marks):
                     if mark == "〇" or mark == "△":
                         try:
-                            # 抜き出した左上の「月」と、今までの「日」をシンプルに合体
-                            raw_date = dates[i] 
-                            target_date = f"{month_title} {raw_date}日"
+                            raw_date = dates[i]  # 元の文字列（例: "6" や "13"、あるいは空白など）
+                            
+                            # 数字だけを綺麗に抽出（"6" や "4" にする）
+                            day_match = re.search(r'\d+', raw_date)
+                            if day_match:
+                                day_num = int(day_match.group(0))
+                                
+                                # 👉 【ここがポイント】前のセルの日にちより小さくなったら、月跨ぎ（翌月）と判定
+                                # 例: 28日 → 4日 になった瞬間、6月だったのが7月に切り替わる
+                                if day_num < prev_day:
+                                    current_month += 1
+                                    if current_month > 12:
+                                        current_month = 1
+                                
+                                prev_day = day_num
+                                target_date = f"{current_month}月{day_num}日"
+                            else:
+                                target_date = raw_date  # 数字が取れなければそのまま
+                                
                         except IndexError:
                             target_date = "日付不明"
 
