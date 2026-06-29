@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 async def main():
     async with async_playwright() as p:
         # 💡 本番（GitHub）は画面がないので、headless=True にします
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
 
         try:
