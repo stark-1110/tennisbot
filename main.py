@@ -138,8 +138,8 @@ async def main():
                     try:
                         MY_EMAIL = os.environ.get("MY_EMAIL")
                         MY_PASSWORD = os.environ.get("MY_PASSWORD")
-                        to_emails_str = os.environ.get("TO_EMAILS", "")
-                        TO_EMAILS = [e.strip() for e in to_emails_str.split(",") if e.strip()]
+                        to_emails_str = os.environ.get("TO_EMAIL", "")
+                        TO_EMAIL = [e.strip() for e in to_emails_str.split(",") if e.strip()]
                         subject = "🎾 テニスコート空き情報のお知らせ"
                         
                         body = (
