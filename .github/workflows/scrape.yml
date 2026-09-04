@@ -32,6 +32,7 @@ jobs:
       env:
         MY_EMAIL: ${{ secrets.MY_EMAIL }}
         MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
+        TO_EMAILS: ${{ secrets.TO_EMAILS }}
         LINE_MESSEGE_API: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}  # 👈【追加】
         LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
       run: python main.py
