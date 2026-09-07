@@ -151,14 +151,14 @@ async def main():
                         msg = MIMEText(body, "plain", "utf-8")
                         msg["Subject"] = subject
                         msg["From"] = MY_EMAIL
-                        msg["To"] = ",".join(TO_EMAILS)
+                        msg["To"] = ",".join(TO_EMAIL)
                         
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
                         server.login(MY_EMAIL, MY_PASSWORD)
                         server.send_message(msg, to_addrs=TO_EMAILS)
                         server.quit()
-                        print(f"✉️ ({len(TO_EMAILS)}名) へメールを送信しました！")
+                        print(f"✉️ ({len(TO_EMAIL)}名) へメールを送信しました！")
                         
                     except Exception as mail_err:
                         print(f"❌ メール送信エラー: {mail_err}")
