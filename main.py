@@ -156,7 +156,7 @@ async def main():
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
                         server.login(MY_EMAIL, MY_PASSWORD)
-                        server.send_message(msg, to_addrs=TO_EMAILS)
+                        server.send_message(msg, to_addrs=TO_EMAIL)
                         server.quit()
                         print(f"✉️ ({len(TO_EMAIL)}名) へメールを送信しました！")
                         
