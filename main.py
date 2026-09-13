@@ -139,7 +139,7 @@ async def main():
                         MY_EMAIL = os.environ.get("MY_EMAIL")
                         MY_PASSWORD = os.environ.get("MY_PASSWORD")
                         to_emails_str = os.environ.get("TO_EMAIL", "")
-                        TO_EMAIL = [e.strip() for e in to_emails_str.split(",") if e.strip()]
+                        TO_EMAILS = [e.strip() for e in to_emails_str.split(",") if e.strip()]
                         subject = "🎾 テニスコート空き情報のお知らせ"
                         
                         body = (
@@ -151,14 +151,14 @@ async def main():
                         msg = MIMEText(body, "plain", "utf-8")
                         msg["Subject"] = subject
                         msg["From"] = MY_EMAIL
-                        msg["To"] = ",".join(TO_EMAIL)
+                        msg["To"] = ",".join(TO_EMAILS)
                         
                         server = smtplib.SMTP("smtp.gmail.com", 587)
                         server.starttls()
                         server.login(MY_EMAIL, MY_PASSWORD)
-                        server.send_message(msg, to_addrs=TO_EMAIL)
+                        server.send_message(msg, to_addrs=TO_EMAILS)
                         server.quit()
-                        print(f"✉️ ({len(TO_EMAIL)}名) へメールを送信しました！")
+                        print(f"✉️ ({len(TO_EMAILS)}名) へメールを送信しました！")
                         
                     except Exception as mail_err:
                         print(f"❌ メール送信エラー ({type(mail_err).__name__}): {mail_err}")
