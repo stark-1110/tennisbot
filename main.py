@@ -151,6 +151,8 @@ async def main():
                         msg = MIMEText(body, "plain", "utf-8")
                         msg["Subject"] = subject
                         msg["From"] = MY_EMAIL
+                        if not TO_EMAILS:
+                            print("⚠️ 送信先アドレス（TO_EMAIL）が設定されていないか空のため、送信をスキップします。")
                         msg["To"] = ",".join(TO_EMAILS)
                         
                         server = smtplib.SMTP("smtp.gmail.com", 587)
